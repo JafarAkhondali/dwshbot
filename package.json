@@ -31,7 +31,8 @@
     "request-promise": "^4.2.1",
     "telegraf": "^3.13.0",
     "telegraf-flow": "^8.3.0",
-    "util": "^0.10.3"
+    "util": "^0.10.3",
+    "xmldom": "^0.1.27"
   },
   "devDependencies": {
     "jsdoc": "^3.5.4",
