@@ -62,19 +62,52 @@ const
  */
 async function searchGoogle(query){
     return new Promise( async (ok, no)=>{
-        query = encodeURI(query);//Url encode query before sending
+        query = encodeURIComponent(query.trim());//Url encode query before sending
+        if (query==""){
+            return ok([
+                {
+                    title: "Dwsh 😐 Yad begir khodet search koni",
+                    type: "article",
+                    id: Math.floor(Math.random()*85858585),
+                    input_message_content:{
+                        message_text: "Dwsh 😐 Yad begir khodet search koni",
+                        parse_mode: "HTML",
+                        disable_web_page_preview: false
+                    }
+                }
+            ])
+        }
         try { //Get promoted products as json from API
             let googleResult = await Rp({
                 uri: `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${query}`,
                 json: true
             });
             if (!googleResult.items){
-                ok("No results :(")
+                return ok([
+                    {
+                        title: "Dwsh 😐 Yad begir khodet search koni",
+                        type: "article",
+                        id: Math.floor(Math.random()*85858585),
+                        input_message_content:{
+                            message_text: "Dwsh 😐 Yad begir khodet search koni",
+                            parse_mode: "HTML",
+                            disable_web_page_preview: false
+                        }
+                    }
+                ])
             }
             let urls = googleResult.items.map((item,i)=>{
                 let url = {
                     url: item.link,
-                    title: item.title
+                    title: item.title,
+                    type: "article",
+                    hide_url: true,
+                    id: Math.floor(Math.random()*1000+i),
+                    input_message_content:{
+                        message_text: item.link,
+                        parse_mode: "HTML",
+                        disable_web_page_preview: true
+                    }
                 }
                 if (
                     typeof item.pagemap !== "undefined"
@@ -85,23 +118,14 @@ async function searchGoogle(query){
                     url.thumb_width = Number(item.pagemap.cse_thumbnail[0].width)
                     url.thumb_height = Number(item.pagemap.cse_thumbnail[0].height)
                 }
-
-                url["type"] = "article";
-
-                url["id"] = Math.random()*1000+i;
-                url["input_message_content"] = {
-                    message_text: url.url,
-                    parse_mode: "HTML",
-                    disable_web_page_preview: false
-                };
                 return url;
             });
             return ok(urls);
         } catch (e) {
-
             no(e.message)
         }
     })
+
 };
 // +--------------------------------+
 // |        </Functions>            |
@@ -121,20 +145,14 @@ const bot = new Telegraf(TELEGRAM_TOKEN);
 bot.on('inline_query', async ({ inlineQuery, answerInlineQuery }) => {
     const offset = parseInt(inlineQuery.offset) || 0
     const results= await searchGoogle(inlineQuery.query)
-    // const results = urls.map((url,i)=>{
-    //
-    //     return url;
-    // })
-
-    return answerInlineQuery(results, {next_offset: offset + 30})
+    return answerInlineQuery(results)
 })
 
-
-
+bot.on('chosen_inline_result', async(ctx)=> {
+})
 bot.startPolling()
 
 log("Bot started!");
-
 
 // +--------------------------------+
 // |           </Main>              |
